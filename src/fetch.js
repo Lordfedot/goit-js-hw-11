@@ -3,7 +3,6 @@ import axios from 'axios';
 const API_KEY = '30996402-c54c41306985cfdc2f4f02212'
 const URL = 'https://pixabay.com/api'
 const OPTION = 'image_type=photo&orientation=horizontal&safesearch=true&per_page=40'
-axios = require('axios').default;
 
 export class PhotoApiService{
     constructor(){
