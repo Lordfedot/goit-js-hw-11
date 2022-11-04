@@ -13,7 +13,7 @@ const refs = {
 const photoApiService = new PhotoApiService()
 
 refs.form.addEventListener('submit', onFormSubmit)
-window.addEventListener('scroll' , throttle(onSkroll,1000))
+window.addEventListener('scroll' , debounce(onSkroll,1000))
 
 function onSkroll(){
     const { scrollTop, scrollHeight, clientHeight } = document.documentElement
@@ -61,14 +61,18 @@ async function loadMore() {
     try {
         const data = await photoApiService.fetchPhoto()
         const array = data.hits
-        appendPhoto(array);
+        await appendPhoto(array);
 
         photoApiService.sumHits += array.length
 
-        if (photoApiService.sumHits >= data.total) {
+        if (array.length === 0) {
             Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+        }
+
+        if (photoApiService.sumHits === data.totalHits) {
             refs.loadMore.classList.add('is-hidden')
         }
+        
     } catch (error) {
         console.log(error);
         Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
@@ -82,7 +86,7 @@ function buildPhoto(array) {
     const gallery = new SimpleLightbox('.gallery a');
 }
 
-function appendPhoto(array) {
+async function appendPhoto(array) {
     const markup = array.map(photo => createMarkUp(photo)).join('');
     refs.gallery.insertAdjacentHTML('beforeend',markup)
     const gallery = new SimpleLightbox('.gallery a'); 
