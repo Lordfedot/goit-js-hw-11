@@ -41,6 +41,7 @@ async function onFormSubmit(e) {
     const data = await photoApiService.fetchPhoto()
     console.log(data);
     const array = data.hits
+    photoApiService.sumHits = array.length
     if (array.length === 0) {
         refs.loadMore.classList.add('is-hidden')
         Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
@@ -61,9 +62,8 @@ async function onLoadMoreClick() {
         const data = await photoApiService.fetchPhoto()
         const array = data.hits
         appendPhoto(array);
-
+        console.log(photoApiService.sumHits);
         photoApiService.sumHits += array.length
-        console.log(data.totalHits);
         console.log(photoApiService.sumHits);
     } catch (error) {
         Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")

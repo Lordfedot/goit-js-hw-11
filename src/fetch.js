@@ -8,7 +8,6 @@ export class PhotoApiService{
     constructor(){
         this.searchQuery = ''
         this.page = 1
-        this.sumHits = 40
     }
     async fetchPhoto() {
         try {
