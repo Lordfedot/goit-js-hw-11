@@ -65,13 +65,9 @@ async function onLoadMoreClick() {
         photoApiService.sumHits += array.length
         console.log(data.totalHits);
         console.log(photoApiService.sumHits);
-    
-        if (photoApiService.sumHits >= data.totalHits) {
-            Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
-            refs.loadMore.classList.add('is-hidden')
-    }
     } catch (error) {
-        console.log(error);
+        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+        refs.loadMore.classList.add('is-hidden')
     }
 }
 
