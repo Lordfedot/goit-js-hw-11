@@ -2,7 +2,8 @@ import Notiflix from 'notiflix';
 import {PhotoApiService} from './fetch'
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
-import debounce from 'lodash.debounce'; 
+import debounce from 'lodash.debounce';
+import throttle from 'lodash.throttle'
 
 const refs = {
     form: document.querySelector('.search-form'),
@@ -12,13 +13,12 @@ const refs = {
 const photoApiService = new PhotoApiService()
 
 refs.form.addEventListener('submit', onFormSubmit)
-refs.loadMore.addEventListener('click', onLoadMoreClick)
-window.addEventListener('scroll' , debounce(onSkroll,400))
+window.addEventListener('scroll' , throttle(onSkroll,1000))
 
 function onSkroll(){
     const { scrollTop, scrollHeight, clientHeight } = document.documentElement
     if (clientHeight + scrollTop >= scrollHeight - 5) {
-        onLoadMoreClick()
+        loadMore()
     }
 }
 
@@ -57,15 +57,20 @@ async function onFormSubmit(e) {
     }
 }
 
-async function onLoadMoreClick() {
+async function loadMore() {
     try {
         const data = await photoApiService.fetchPhoto()
         const array = data.hits
         appendPhoto(array);
-        console.log(photoApiService.sumHits);
+
         photoApiService.sumHits += array.length
-        console.log(photoApiService.sumHits);
+
+        if (photoApiService.sumHits >= data.total) {
+            Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+            refs.loadMore.classList.add('is-hidden')
+        }
     } catch (error) {
+        console.log(error);
         Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
         refs.loadMore.classList.add('is-hidden')
     }
