@@ -2,8 +2,7 @@ import Notiflix from 'notiflix';
 import {PhotoApiService} from './fetch'
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
-
-
+import debounce from 'lodash.debounce'; 
 
 const refs = {
     form: document.querySelector('.search-form'),
@@ -14,34 +13,40 @@ const photoApiService = new PhotoApiService()
 
 refs.form.addEventListener('submit', onFormSubmit)
 refs.loadMore.addEventListener('click', onLoadMoreClick)
-window.addEventListener('scroll' , async ()=> {
+window.addEventListener('scroll' , debounce(onSkroll,400))
+
+function onSkroll(){
     const { scrollTop, scrollHeight, clientHeight } = document.documentElement
     if (clientHeight + scrollTop >= scrollHeight - 5) {
         onLoadMoreClick()
     }
-})
+}
 
 async function onFormSubmit(e) {
     e.preventDefault()
     refs.loadMore.classList.add('is-hidden')
 
     destroyMarkup()
+
     photoApiService.query = e.target.elements.searchQuery.value.trim()
     if (photoApiService.searchQuery === '') {
         refs.loadMore.classList.add('is-hidden')
         destroyMarkup()
         return
     }
+
     photoApiService.resetPage()
-    photoApiService.fetchPhoto()
+    photoApiService.resetSumHits()
 
     const data = await photoApiService.fetchPhoto()
+    console.log(data);
     const array = data.hits
     if (array.length === 0) {
         refs.loadMore.classList.add('is-hidden')
         Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
         return
     }
+
     buildPhoto(array);
     
     Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
@@ -52,13 +57,21 @@ async function onFormSubmit(e) {
 }
 
 async function onLoadMoreClick() {
-    const data = await photoApiService.fetchPhoto()
-    const array = data.hits
-    appendPhoto(array);
+    try {
+        const data = await photoApiService.fetchPhoto()
+        const array = data.hits
+        appendPhoto(array);
 
-    if (array.length < 40) {
-        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
-        refs.loadMore.classList.add('is-hidden')
+        photoApiService.sumHits += array.length
+        console.log(data.totalHits);
+        console.log(photoApiService.sumHits);
+    
+        if (photoApiService.sumHits >= data.totalHits) {
+            Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+            refs.loadMore.classList.add('is-hidden')
+    }
+    } catch (error) {
+        console.log(error);
     }
 }
 
